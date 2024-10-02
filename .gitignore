@@ -1,0 +1,7 @@
+__pycache__/*
+restricted_names.txt
+todo
+wsgi.wsgi
+launch.json
+db.sqlite
+k.py

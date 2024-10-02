@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block chat %}
+    <div class="messages" id="messages">
+    </div>
+    <div class="chat-input">
+        <!--<input type="text" id="message" placeholder="Type a message...">-->
+        <textarea id="message" placeholder="Type a message..."></textarea>
+        <button onClick="sendMessage()" id="send">Send</button>
+    </div>
+    <script type="text/javascript">
+        var socketio = io();
+        const messages = document.getElementById("messages");
+
+        const createMessage = (name, msg) => {
+            const content = `
+            <div class="text">
+                <p>
+                    [${new Date().toLocaleString().split(", ")[1]}] <strong>${name}</strong>: ${msg}
+                </p>
+            </div>
+            `;
+            messages.innerHTML += content;
+            messages.scrollTop = messages.scrollHeight;
+        };
+
+        socketio.on("connect", () => {
+            if (!localStorage.name) {
+                socketio.emit("message", { message: "/name User", name: "None" });
+            }
+        });
+
+        socketio.on("message", (data) => {
+            createMessage(data.name, data.message);
+        });
+
+        socketio.on("name", (data) => {
+            localStorage.name = data.name;
+        });
+
+        const sendMessage = () => {
+            const message = document.getElementById("message");
+            if (message.value == "") return;
+            socketio.emit("message", { message: message.value, name: localStorage.name });
+            message.value = "";
+        };
+
+        document.getElementById('message').addEventListener('keydown', function(event) {
+            if ((event.key === 'Enter' || event.key === "NumEnter") && !event.shiftKey) {
+                event.preventDefault(); 
+                document.getElementById('send').click();
+            }
+        });
+
+        /*document.getElementById("message").onkeypress = function(event) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById("send").click();
+            }
+        };*/
+    </script>
+{% for msg in messages %}
+    <script type="text/javascript">
+        createMessage("{{msg.name}}", "{{msg.message}}");
+    </script>
+{% endfor %} {% endblock %}
